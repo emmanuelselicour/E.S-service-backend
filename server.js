@@ -1,78 +1,67 @@
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
-const path = require("path");
-
 const app = express();
+
+app.use(cors());
 app.use(express.json());
+app.use(express.static("public")); // ton front-end
 
-app.use(cors({
-  origin: "https://es-services.netlify.app",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
-}));
+const productsPath = "./data/products.json";
+const ordersPath = "./data/orders.json";
 
-// ===== ROUTES API =====
-
-// Services (products)
+// 1) Get products
 app.get("/products", (req, res) => {
-  const products = JSON.parse(fs.readFileSync("./data/products.json", "utf-8"));
+  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
   res.json(products);
 });
 
-// Add product (from panel)
+// 2) Add product
 app.post("/products", (req, res) => {
-  const productsPath = "./data/products.json";
   const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
-
   const newProduct = {
     id: Date.now(),
     name: req.body.name,
     price: req.body.price,
-    description: req.body.description,
-    image: req.body.image
+    image: req.body.image,
+    description: req.body.description
   };
-
   products.push(newProduct);
   fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
-
   res.json({ success: true });
 });
 
-// Orders
+// 3) Delete product
+app.delete("/products/:id", (req, res) => {
+  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
+  const filtered = products.filter(p => p.id != req.params.id);
+  fs.writeFileSync(productsPath, JSON.stringify(filtered, null, 2));
+  res.json({ success: true });
+});
+
+// 4) Get orders
 app.get("/orders", (req, res) => {
-  const orders = JSON.parse(fs.readFileSync("./data/orders.json", "utf-8"));
+  const orders = JSON.parse(fs.readFileSync(ordersPath, "utf-8"));
   res.json(orders);
 });
 
-app.post("/order", (req, res) => {
-  const ordersPath = "./data/orders.json";
+// 5) Add order (from frontend)
+app.post("/orders", (req, res) => {
   const orders = JSON.parse(fs.readFileSync(ordersPath, "utf-8"));
-
   const newOrder = {
-    name: req.body.name,
+    id: Date.now(),
+    productName: req.body.productName,
+    price: req.body.price,
+    customerName: req.body.customerName,
     phone: req.body.phone,
-    email: req.body.email || "",
-    service: req.body.service,
-    details: req.body.details || "",
-    date: new Date().toISOString()
+    date: new Date().toLocaleString()
   };
-
   orders.push(newOrder);
   fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2));
-
   res.json({ success: true });
 });
 
-// ===== PANEL =====
-app.get("/panel", (req, res) => {
-  res.sendFile(path.join(__dirname, "panel", "index.html"));
-});
-
-// Allow panel to access css
-app.use("/css", express.static(path.join(__dirname, "css")));
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`API running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });
