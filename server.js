@@ -3,35 +3,42 @@ const fs = require("fs");
 const cors = require("cors");
 
 const app = express();
+app.use(express.json());
 
-/* ✅ Autorisation frontend Netlify */
+/* Autoriser uniquement ton frontend Netlify */
 app.use(cors({
   origin: "https://es-services.netlify.app",
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
 
-app.use(express.json());
-app.use(express.static("panel"));
-
-/* SERVICES */
+// Service list
 app.get("/services", (req, res) => {
-  res.json(require("./data/services.json"));
+  const services = JSON.parse(fs.readFileSync("./data/services.json", "utf-8"));
+  res.json(services);
 });
 
-/* COMMANDES */
+// Receive order
 app.post("/order", (req, res) => {
   const ordersPath = "./data/orders.json";
   const orders = JSON.parse(fs.readFileSync(ordersPath, "utf-8"));
-  orders.push({
-    ...req.body,
-    date: new Date().toISOString()
-  });
 
+  const newOrder = {
+    name: req.body.name,
+    phone: req.body.phone,
+    email: req.body.email || "",
+    service: req.body.service,
+    details: req.body.details || "",
+    date: new Date().toISOString()
+  };
+
+  orders.push(newOrder);
   fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2));
+
   res.json({ success: true });
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("API E.S Company en ligne");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`API running on port ${PORT}`);
 });
