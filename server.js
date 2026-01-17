@@ -1,24 +1,24 @@
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(express.json());
 
-/* Autoriser uniquement ton frontend Netlify */
 app.use(cors({
   origin: "https://es-services.netlify.app",
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
 
-// Service list
+// Services
 app.get("/services", (req, res) => {
   const services = JSON.parse(fs.readFileSync("./data/services.json", "utf-8"));
   res.json(services);
 });
 
-// Receive order
+// Order
 app.post("/order", (req, res) => {
   const ordersPath = "./data/orders.json";
   const orders = JSON.parse(fs.readFileSync(ordersPath, "utf-8"));
@@ -37,6 +37,14 @@ app.post("/order", (req, res) => {
 
   res.json({ success: true });
 });
+
+// ===== PANEL ROUTE =====
+app.get("/panel", (req, res) => {
+  res.sendFile(path.join(__dirname, "panel", "index.html"));
+});
+
+// ===== Static assets (CSS) =====
+app.use("/css", express.static(path.join(__dirname, "css")));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
