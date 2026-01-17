@@ -1,0 +1,12 @@
+<h2>Admin Panel</h2>
+<div id="orders"></div>
+
+<script>
+fetch("/data/orders.json")
+.then(r=>r.json())
+.then(data=>{
+  data.forEach(o=>{
+    document.body.innerHTML += `<p>${o.name} - ${o.service}</p>`;
+  });
+});
+</script>
