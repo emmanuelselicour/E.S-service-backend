@@ -8,14 +8,41 @@ app.use(express.json());
 
 app.use(cors({
   origin: "https://es-services.netlify.app",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"]
 }));
 
-// ===== API PUBLIC =====
-app.get("/services", (req, res) => {
-  const services = JSON.parse(fs.readFileSync("./data/services.json", "utf-8"));
-  res.json(services);
+// ===== ROUTES API =====
+
+// Services (products)
+app.get("/products", (req, res) => {
+  const products = JSON.parse(fs.readFileSync("./data/products.json", "utf-8"));
+  res.json(products);
+});
+
+// Add product (from panel)
+app.post("/products", (req, res) => {
+  const productsPath = "./data/products.json";
+  const products = JSON.parse(fs.readFileSync(productsPath, "utf-8"));
+
+  const newProduct = {
+    id: Date.now(),
+    name: req.body.name,
+    price: req.body.price,
+    description: req.body.description,
+    image: req.body.image
+  };
+
+  products.push(newProduct);
+  fs.writeFileSync(productsPath, JSON.stringify(products, null, 2));
+
+  res.json({ success: true });
+});
+
+// Orders
+app.get("/orders", (req, res) => {
+  const orders = JSON.parse(fs.readFileSync("./data/orders.json", "utf-8"));
+  res.json(orders);
 });
 
 app.post("/order", (req, res) => {
@@ -33,50 +60,16 @@ app.post("/order", (req, res) => {
 
   orders.push(newOrder);
   fs.writeFileSync(ordersPath, JSON.stringify(orders, null, 2));
-  res.json({ success: true });
-});
-
-// ===== API ADMIN =====
-app.get("/admin/services", (req, res) => {
-  const services = JSON.parse(fs.readFileSync("./data/services.json", "utf-8"));
-  res.json(services);
-});
-
-app.post("/admin/services", (req, res) => {
-  const servicesPath = "./data/services.json";
-  const services = JSON.parse(fs.readFileSync(servicesPath, "utf-8"));
-
-  const newService = {
-    id: Date.now(),
-    name: req.body.name,
-    price: req.body.price
-  };
-
-  services.push(newService);
-  fs.writeFileSync(servicesPath, JSON.stringify(services, null, 2));
 
   res.json({ success: true });
 });
 
-app.get("/admin/orders", (req, res) => {
-  const orders = JSON.parse(fs.readFileSync("./data/orders.json", "utf-8"));
-  res.json(orders);
-});
-
-// ===== PANEL ROUTES =====
+// ===== PANEL =====
 app.get("/panel", (req, res) => {
   res.sendFile(path.join(__dirname, "panel", "index.html"));
 });
 
-app.get("/panel/services", (req, res) => {
-  res.sendFile(path.join(__dirname, "panel", "services.html"));
-});
-
-app.get("/panel/orders", (req, res) => {
-  res.sendFile(path.join(__dirname, "panel", "orders.html"));
-});
-
-// ===== Static assets (CSS) =====
+// Allow panel to access css
 app.use("/css", express.static(path.join(__dirname, "css")));
 
 const PORT = process.env.PORT || 3000;
