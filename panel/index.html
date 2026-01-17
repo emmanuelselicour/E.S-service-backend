@@ -1,23 +1,105 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Panel Admin | E.S Company</title>
-  <link rel="stylesheet" href="../css/style.css">
+<meta charset="UTF-8">
+<title>Panel Admin - E.S Company</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body class="panel">
 
-  <h2>Dashboard</h2>
+<h2>📦 Panel Admin - E.S Company</h2>
 
-  <div class="card">
-    <h3>Gestion des produits</h3>
-    <a href="/panel/services"><button>Aller</button></a>
-  </div>
+<div>
+  <button onclick="show('orders')">Voir Commandes</button>
+  <button onclick="show('products')">Produits</button>
+  <button onclick="show('addProduct')">Ajouter Produit</button>
+</div>
 
-  <div class="card">
-    <h3>Voir les commandes</h3>
-    <a href="/panel/orders"><button>Aller</button></a>
-  </div>
+<div id="orders" style="display:none; margin-top:20px;">
+  <h3>📌 Commandes</h3>
+  <div id="ordersList"></div>
+</div>
+
+<div id="products" style="display:none; margin-top:20px;">
+  <h3>📌 Produits</h3>
+  <div id="productsList"></div>
+</div>
+
+<div id="addProduct" style="display:none; margin-top:20px;">
+  <h3>➕ Ajouter Produit</h3>
+  <form id="productForm">
+    <input type="text" name="name" placeholder="Nom du produit" required>
+    <input type="number" name="price" placeholder="Prix (GDS)" required>
+    <input type="text" name="image" placeholder="Lien image (URL)" required>
+    <textarea name="description" placeholder="Description" rows="4" required></textarea>
+    <button type="submit">Ajouter</button>
+  </form>
+  <p id="msg"></p>
+</div>
+
+<script>
+  function show(section){
+    document.getElementById("orders").style.display = "none";
+    document.getElementById("products").style.display = "none";
+    document.getElementById("addProduct").style.display = "none";
+    document.getElementById(section).style.display = "block";
+
+    if(section === "orders") loadOrders();
+    if(section === "products") loadProducts();
+  }
+
+  async function loadOrders(){
+    const res = await fetch("/orders");
+    const data = await res.json();
+    const box = document.getElementById("ordersList");
+    box.innerHTML = "";
+
+    data.reverse().forEach(o => {
+      box.innerHTML += `
+        <div class="card">
+          <strong>${o.name}</strong> - ${o.service} <br>
+          ${o.phone} <br>
+          <small>${new Date(o.date).toLocaleString()}</small>
+        </div>
+      `;
+    });
+  }
+
+  async function loadProducts(){
+    const res = await fetch("/products");
+    const data = await res.json();
+    const box = document.getElementById("productsList");
+    box.innerHTML = "";
+
+    data.forEach(p => {
+      box.innerHTML += `
+        <div class="card">
+          <img src="${p.image}" alt="${p.name}" style="width:100%; border-radius:10px; margin-bottom:10px;">
+          <strong>${p.name}</strong><br>
+          <span>${p.price} GDS</span><br>
+          <p>${p.description}</p>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("productForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+
+    await fetch("/products", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(data)
+    });
+
+    document.getElementById("msg").innerText = "Produit ajouté avec succès ✅";
+    e.target.reset();
+  }
+
+  show("orders"); // Default
+</script>
 
 </body>
 </html>
