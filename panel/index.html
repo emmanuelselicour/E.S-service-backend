@@ -1,46 +1,23 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>ES Company – Admin Panel</title>
-<link rel="stylesheet" href="../css/style.css">
+  <meta charset="UTF-8">
+  <title>Panel Admin | E.S Company</title>
+  <link rel="stylesheet" href="../css/style.css">
 </head>
-
 <body class="panel">
 
-<h2>📦 Commandes – E.S Company</h2>
+  <h2>Dashboard</h2>
 
-<p>
-  🌐 Site client :
-  <a href="https://es-services.netlify.app" target="_blank" style="color:#60a5fa;">
-    es-services.netlify.app
-  </a>
-</p>
+  <div class="card">
+    <h3>Gestion des produits</h3>
+    <a href="/panel/services"><button>Aller</button></a>
+  </div>
 
-<div id="orders"></div>
-
-<script>
-fetch("/data/orders.json")
-.then(res => res.json())
-.then(data => {
-  const box = document.getElementById("orders");
-
-  if (data.length === 0) {
-    box.innerHTML = "<p>Aucune commande</p>";
-    return;
-  }
-
-  data.reverse().forEach(o => {
-    box.innerHTML += `
-      <div class="card">
-        <strong>Nom :</strong> ${o.name}<br>
-        <strong>Service :</strong> ${o.service}<br>
-        <small>${new Date(o.date).toLocaleString()}</small>
-      </div>
-    `;
-  });
-});
-</script>
+  <div class="card">
+    <h3>Voir les commandes</h3>
+    <a href="/panel/orders"><button>Aller</button></a>
+  </div>
 
 </body>
 </html>
